@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-native/Libraries/Network/RCTNetworking.mm b/node_modules/react-native/Libraries/Network/RCTNetworking.mm
+index 0eae618..b9dd6e2 100644
+--- a/node_modules/react-native/Libraries/Network/RCTNetworking.mm
++++ b/node_modules/react-native/Libraries/Network/RCTNetworking.mm
+@@ -128,6 +128,8 @@ - (RCTURLRequestCancellationBlock)handleResult:(NSDictionary<NSString *, id> *)r
+ 
+   // Add the body.
+   [_multipartBody appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
++  NSData* data = result[@"body"];
++  NSLog(@"[RCTNetworking handleResult] multipartDataSize=%lu", data.length);
+   [_multipartBody appendData:result[@"body"]];
+   [_multipartBody appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+ 
+@@ -427,6 +429,10 @@ - (BOOL)canHandleRequest:(NSURLRequest *)request
+     return callback(nil, @{@"body" : data});
+   }
+   NSURLRequest *request = [RCTConvert NSURLRequest:query[@"uri"]];
++  if ([query[@"uri"] hasPrefix:@"file://"]) {
++    NSData* rawData = [NSData dataWithContentsOfURL:[NSURL URLWithString:query[@"uri"]]];
++    NSLog(@"[RCTNetworking processDataForHTTPQuery] %@ rawDataSize=%lu", query[@"uri"], rawData.length);
++  }
+   if (request) {
+     __block RCTURLRequestCancellationBlock cancellationBlock = nil;
+     RCTNetworkTask *task =

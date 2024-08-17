@@ -5,9 +5,11 @@
  * @format
  */
 
-import React from 'react';
+import axios, { AxiosRequestConfig } from 'axios';
+import React, {useEffect} from 'react';
 import type {PropsWithChildren} from 'react';
 import {
+  NativeModules,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -29,7 +31,7 @@ type SectionProps = PropsWithChildren<{
   title: string;
 }>;
 
-function Section({children, title}: SectionProps): React.JSX.Element {
+function Section({children, title}: SectionProps): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   return (
     <View style={styles.sectionContainer}>
@@ -55,12 +57,41 @@ function Section({children, title}: SectionProps): React.JSX.Element {
   );
 }
 
-function App(): React.JSX.Element {
+function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+
+  useEffect(() => {
+    NativeModules.PhotoModule.getPhoto().then(photo => {
+      console.log(photo);
+      const options: AxiosRequestConfig = {
+        url: 'http://localhost:3000/upload',
+        method: 'post',
+        responseType: 'text',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      };
+      const formData = new FormData();
+      formData.append('file', {
+        uri: photo.uri,
+        type: photo.mime,
+        name: photo.name,
+      });
+      options.data = formData;
+      axios(options).then(
+        res => {
+          console.log('test-upload', res.data);
+        },
+        err => {
+          console.log('test-upload', err);
+        },
+      );
+    });
+  }, []);
 
   return (
     <SafeAreaView style={backgroundStyle}>
